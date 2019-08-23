@@ -1,10 +1,10 @@
 module.exports = {
     server: {
         isDev: false,
-        port: 80,
-        baseUrl: 'http://blockreducer.com/',
-        name: 'Block Reducer2',
-        description: 'Block Reducer2',
+        port: 8000,
+        baseUrl: 'http://127.0.0.1:8000/',
+        name: 'BitMEX Auto Bot',
+        description: 'BitMEX Auto Bot',
         author: 'Zhenlong J.',
         secret: 'blockreducer2@@',
         // sslKey: './sslcert/localhost.key',
@@ -13,69 +13,22 @@ module.exports = {
         environment: 'development',
         invitationCode: '23900',
         pingInterval: 30 * 1000,
-        acceptSymbols: ['XBTUSD', 'tETHUSD', 'tBABUSD', 'tEOSUSD', 'tLTCUSD', 'tBSVUSD'],
     },
     mysql: {
         connectionLimit: 10,
-        host: '108.61.186.24',
-        user: 'bitmex3536',
-        password: 'BitMex*95645636',
-        database: 'blockreducer2',
+        host: '127.0.0.1',
+        user: 'root',
+        password: '',
+        database: 'bitmex_autobot',
         port: 3306
     },
     session: {
-        name: 'BlockReducer2',
-        key: 'blockreducer2',
-        secret: 'blockreducer2@@',
+        name: 'BitMEX-Auto-Bot',
+        key: 'bitmex_autobot',
+        secret: 'bitmex_autobot@@',
     },
     dbTblName: {
         users: 'users',
-        settings: 'settings',
-
-        tradeBucketed: 'trade_bucketed',
-        tradeBucketed1m: 'trade_bucketed_1m',
-        tradeBucketed5m: 'trade_bucketed_5m',
-        tradeBucketed1h: 'trade_bucketed_1h',
-
-        fft: 'fft',
-        fft5m: 'fft_5m',
-        fft1h: 'fft_1h',
-
-        id0: 'id0',
-        id0_1m: 'id0_1m',
-        id0_5m: 'id0_5m',
-        id0_1h: 'id0_1h',
-
-        tradesBuffer: 'trades_buffer',
-        volume: 'volume',
-        volume1m: 'volume_1m',
-        volume5m: 'volume_5m',
-        volume1h: 'volume_1h',
-
-        vwap: 'vwap',
-        vwap1m: 'vwap_1m',
-        vwap5m: 'vwap_5m',
-        vwap1h: 'vwap_1h',
-
-        interestedNValue: 'interested_n_value',
-        interestedNValue1m: 'interested_n_value_1m',
-        interestedNValue5m: 'interested_n_value_5m',
-        interestedNValue1h: 'interested_n_value_1h',
-
-        deribitInstruments: 'deribit_instruments',
-        deribitInstruments2: 'deribit_instruments2',
-
-        cryptoMarkets: 'crypto_markets',
-
-        fftFixTask: 'fft_fix_task',
+        bots: 'bots',
     },
-
-    chart: {
-        rowCount1: 750,
-        rowCount2: 1000,
-        rowCount3: 1250,
-        rowCount4: 1500,
-        rowCount5: 1750,
-        rowCount6: 2000,
-    }
 };
