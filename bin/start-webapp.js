@@ -27,6 +27,9 @@ if (cluster.isWorker) {
 
     io = SocketIO(httpServer);
     socketIOService.initSocketIOServer(io);
+    socketIOService.start([
+      'instrument:XBTUSD',
+    ]);
 
     httpServer.listen(port);
     httpServer.on('error', onError);
