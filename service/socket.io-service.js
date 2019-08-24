@@ -82,12 +82,12 @@ service.onWsInstrument = (action, data) => {
   let direction;
   for (let item of data) {
     direction = 1;
-    if (!!item.symbol && !!item.markPrice) {
+    if (!!item.symbol && !!item.lastPrice) {
       if (!!service.prices[item.symbol]) {
-        direction = Math.sign(item.markPrice - service.prices[item.symbol]['price']);
+        direction = Math.sign(item.lastPrice - service.prices[item.symbol]['price']);
       }
       service.prices[item.symbol] = {
-        price: item.markPrice,
+        price: item.lastPrice,
         direction,
       };
     }
