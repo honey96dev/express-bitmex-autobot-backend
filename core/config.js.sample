@@ -30,5 +30,6 @@ module.exports = {
     dbTblName: {
         users: 'users',
         bots: 'bots',
+        apikeys: 'apikeys',
     },
 };
