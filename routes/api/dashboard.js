@@ -65,6 +65,7 @@ const priceChartProc = (req, res, next) => {
     const timestampFormat = '%Y-%m-%dT%H:%i:%s.000Z';
 
     sql = sprintf("SELECT `timestamp`, AVG(`open`) `open`, AVG(`high`) `high`, AVG(`low`) `low`, AVG(`close`) `close` FROM (SELECT FLOOR((@row_number:=@row_number + 1)/%f) AS num, `timestamp`, `open`, `high`, `low`, `close` FROM (SELECT DATE_FORMAT(ADDTIME(STR_TO_DATE(`timestamp`, '%s'), '%s'), '%s') `timestamp`, `open`, `high`, `low`, `close` FROM `%s_%s_%s` WHERE `timestamp` BETWEEN '%s' AND '%s' ORDER BY `timestamp`) `bd`, (SELECT @row_number:=0) `row_num`  ORDER BY `timestamp` ASC) `tmp` GROUP BY `num`;", step, timestampFormat, timeOffset, timestampFormat, dbTblName.tradeBucketed, symbol, binSize, startTime, endTime);
+    console.log(sql);
     dbConn.query(sql, null, (error, rows, fields) => {
       if (error) {
         console.error(error);
