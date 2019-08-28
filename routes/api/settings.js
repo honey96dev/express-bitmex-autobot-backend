@@ -5,6 +5,7 @@ import {server, session, dbTblName} from '../../core/config';
 import dbConn from '../../core/dbConn';
 import myCrypto from '../../core/myCrypto';
 import strings from '../../core/strings';
+import {BitMEXApi, GET, POST} from '../../core/BitmexApi';
 
 const router = express.Router();
 
@@ -91,8 +92,30 @@ const passwordProc = (req, res, next) => {
   });
 };
 
+const connectToExchange = (req, res, next) => {
+  const params = req.body;
+  const {testnet, apiKey, apiKeySecret} = params;
+
+  const bitmex = new BitMEXApi(testnet, apiKey, apiKeySecret);
+  bitmex.position({}, (data) => {
+    console.log('connectToExchange', JSON.stringify(data));
+    res.status(200).send({
+      result: strings.success,
+      message: strings.successfullyConnected,
+    });
+  }, (error) => {
+    console.error('connectToExchange', JSON.stringify(error));
+    error = JSON.parse(error);
+    res.status(200).send({
+      result: strings.error,
+      message: error.error.message,
+    });
+  });
+};
+
 // router.post('/load-apikey', loadApikey);
 // router.post('/save-apikey', saveApikey);
 router.post('/password', passwordProc);
+router.post('/connect-to-exchange', connectToExchange);
 
 module.exports = router;

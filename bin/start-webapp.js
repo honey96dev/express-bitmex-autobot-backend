@@ -4,7 +4,7 @@ import http from 'http';
 import cluster from 'cluster';
 import SocketIO from 'socket.io';
 import {server} from '../core/config';
-import socketIOService from '../service/socket.io-service';
+import socketIOService from '../service/socketIOSservice';
 
 let debug;
 let port;
@@ -29,6 +29,7 @@ if (cluster.isWorker) {
     socketIOService.initSocketIOServer(io);
     socketIOService.start([
       'instrument:XBTUSD',
+      'orderBookL2_25:XBTUSD',
     ]);
 
     httpServer.listen(port);

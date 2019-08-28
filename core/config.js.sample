@@ -1,8 +1,8 @@
 module.exports = {
   server: {
     isDev: false,
-    port: 8000,
-    baseUrl: 'http://127.0.0.1:8000/',
+    port: 80,
+    baseUrl: 'http://139.180.130.41/',
     name: 'BitMEX Auto Bot',
     description: 'BitMEX Auto Bot',
     author: 'Zhenlong J.',
@@ -13,6 +13,7 @@ module.exports = {
     environment: 'development',
     invitationCode: '23900',
     pingInterval: 30 * 1000,
+    acceptSymbols: ['XBTUSD', 'tETHUSD', 'tBABUSD', 'tEOSUSD', 'tLTCUSD', 'tBSVUSD'],
   },
   mysql: {
     connectionLimit: 10,
@@ -32,6 +33,10 @@ module.exports = {
     bots: 'bots',
     apikeys: 'apikeys',
     settings: 'settings',
+    tradeBucketed: 'trade_bucketed',
+    tradeBucketed1m: 'trade_bucketed_1m',
+    tradeBucketed5m: 'trade_bucketed_5m',
+    tradeBucketed1h: 'trade_bucketed_1h',
   },
   bitmex: {
     testnet: false,
@@ -39,5 +44,16 @@ module.exports = {
     baseUrlTestnet: 'https://testnet.bitmex.com/api/v1',
     wsUrlTestnet: 'wss://testnet.bitmex.com/realtime',
     wsUrlRealnet: 'wss://www.bitmex.com/realtime',
+    bufferSize: 750,
+    pathTradeBucketed: '/trade/bucketed',
+    pathInstrument: '/instrument',
+  },
+  chart: {
+    rowCount1: 750,
+    rowCount2: 1000,
+    rowCount3: 1250,
+    rowCount4: 1500,
+    rowCount5: 1750,
+    rowCount6: 2000,
   },
 };

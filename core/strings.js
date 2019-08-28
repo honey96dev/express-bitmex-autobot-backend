@@ -28,4 +28,5 @@ module.exports = {
     symbolIsInvalid: 'Symbol is invalid',
     recalculationIsAlreadyBeingPerformed: 'Recalculation is already being performed',
     successfullyRequested: 'Successfully requested',
+    successfullyConnected: 'Successfully connected',
 };
