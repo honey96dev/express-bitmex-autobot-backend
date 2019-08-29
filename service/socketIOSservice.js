@@ -24,6 +24,9 @@ let service = {
   subscribes: [],
 
   exchangeClients: new Map(),
+  apiKey2Socket: new Map(),
+  wallets: new Map(),
+  positions: new Map(),
 };
 
 service.renewSocket = () => {
@@ -100,7 +103,7 @@ service.initSocketIOServer = (ioServer) => {
       let webSocket;
       if (service.exchangeClients.has(apiKey)) {
         webSocket = service.exchangeClients.get(apiKey);
-        if (webSocket.connected) {
+        if (webSocket.isConnected) {
           return;
         }
       } else {
@@ -124,8 +127,10 @@ service.initSocketIOServer = (ioServer) => {
 
           webSocket.send(JSON.stringify({
             op: "subscribe",
-            args: ["orderBookL2_25:XBTUSD", "wallet", "order:XBTUSD",],
+            args: ["orderBookL2_25:XBTUSD", "order:XBTUSD", "wallet", "position:XBTUSD",],
           }));
+
+          socket.emit(signals.connectedToExchange, JSON.stringify(params));
         });
       });
       webSocket.on('message', (data) => {
@@ -139,12 +144,15 @@ service.initSocketIOServer = (ioServer) => {
         }
         if (!!json.table) {
           const table = json.table;
-          if (table === 'wallet') {
-            socket.emit(table, data);
-            // service.onWsInstrument(data.action, data.data);
-          } else if (table === 'order') {
-            socket.emit(table, data);
-            // service.onWsOrderBookL2_25(data.action, data.data);
+          if (table === 'order') {
+            service.onWsOrder(apiKey, json.action, json.data);
+            // socket.emit(table, data);
+          } else if (table === 'wallet') {
+            // console.error('wallet', apiKey, data);
+            service.onWsWallet(apiKey, json.action, json.data);
+          } else if (table === 'position') {
+            // console.error('position', apiKey, data);
+            service.onWsPosition(apiKey, json.action, json.data);
           }
         }
       });
@@ -161,6 +169,18 @@ service.initSocketIOServer = (ioServer) => {
 
       webSocket.start();
       service.exchangeClients.set(apiKey, webSocket);
+      service.apiKey2Socket.set(apiKey, socket);
+    });
+
+    socket.on(signals.disconnectFromExchange, (data) => {
+      const params = JSON.parse(data);
+      const {testnet, apiKey, apiKeySecret} = params;
+      service.exchangeClients.get(apiKey).send(JSON.stringify({
+        op: "unsubscribe",
+        args: ["orderBookL2_25:XBTUSD", "order:XBTUSD", "wallet", "position:XBTUSD",],
+      }));
+      service.exchangeClients.get(apiKey).destroy();
+      service.exchangeClients.delete(apiKey);
     });
 
     socket.on(signals.checkIsConnected, (data) => {
@@ -172,13 +192,28 @@ service.initSocketIOServer = (ioServer) => {
         const temp = service.exchangeClients.get(apiKey);
         result = JSON.stringify({
           connected: temp.isConnected,
+          apiKey: params,
         });
+        if (temp.isConnected) {
+          service.apiKey2Socket.set(apiKey, socket);
+        }
+        // console.error(temp, result);
       } else {
         result = JSON.stringify({
           connected: false,
+          apiKey: params,
         });
       }
       socket.emit(signals.answerIsConnected, result);
+
+      let temp = service.wallets.get(apiKey);
+      if (temp) {
+        socket.emit(signals.wallet, JSON.stringify(temp));
+      }
+      temp = service.positions.get(apiKey);
+      if (temp) {
+        socket.emit(signals.position, JSON.stringify(temp));
+      }
     });
   })
 };
@@ -249,6 +284,78 @@ service.onWsOrderBookL2_25 = (action, data) => {
   //   temp['Sell'].push(item);
   // }
   service.ioServer.sockets.emit(signals.orderBookL2_25, JSON.stringify(temp));
+};
+
+service.onWsOrder = (apiKey, action, data) => {
+
+};
+
+service.onWsWallet = (apiKey, action, data) => {
+  // console.error(apiKey, action, JSON.stringify(data));
+  if (action === 'partial') {
+    service.wallets.set(apiKey, data);
+  } else if (action === 'insert') {
+    let items = service.wallets.get(apiKey);
+    items = _.concat(items, data);
+    service.wallets.set(apiKey, items);
+  } else if (action === 'update') {
+    let items = service.wallets.get(apiKey);
+    let index;
+    for (let item of data) {
+      index = _.findIndex(items, {account: item['account']});
+      Object.keys(item).map((key, idx) => {
+        items[index][key] = item[key];
+      });
+    }
+    service.wallets.set(apiKey, items);
+  } else if (action === 'delete') {
+    let items = service.wallets.get(apiKey);
+    for (let item of data) {
+      items = _.remove(wallet, {account: item['account']});
+    }
+    service.wallets.set(apiKey, items);
+  }
+
+  const socket = service.apiKey2Socket.get(apiKey);
+  if (socket) {
+    const items = service.wallets.get(apiKey);
+    socket.emit(signals.wallet, JSON.stringify(items));
+    // console.log('wallets', JSON.stringify(wallet));
+  }
+};
+
+service.onWsPosition = (apiKey, action, data) => {
+  if (action === 'partial') {
+    service.positions.set(apiKey, data);
+  } else if (action === 'insert') {
+    let items = service.positions.get(apiKey);
+    items = _.concat(items, data);
+    service.positions.set(apiKey, items);
+  } else if (action === 'update') {
+    let items = service.positions.get(apiKey);
+    let index;
+    for (let item of data) {
+      index = _.findIndex(items, {account: item['account'], symbol: item['symbol']});
+      // console.error(index, items[index], item);
+      Object.keys(item).map((key, idx) => {
+        items[index][key] = item[key];
+      });
+    }
+    service.positions.set(apiKey, items);
+  } else if (action === 'delete') {
+    let items = service.positions.get(apiKey);
+    for (let item of data) {
+      items = _.remove(items, {account: item['account'], symbol: item['symbol']});
+    }
+    service.positions.set(apiKey, items);
+  }
+
+  const socket = service.apiKey2Socket.get(apiKey);
+  if (socket) {
+    const items = service.positions.get(apiKey);
+    socket.emit(signals.position, JSON.stringify(items));
+    // console.log('wallets', JSON.stringify(wallet));
+  }
 };
 
 service.start = (subscribes) => {
