@@ -97,14 +97,15 @@ const connectToExchange = (req, res, next) => {
   const {testnet, apiKey, apiKeySecret} = params;
 
   const bitmex = new BitMEXApi(testnet, apiKey, apiKeySecret);
-  bitmex.position({}, (data) => {
-    console.log('connectToExchange', JSON.stringify(data));
+  bitmex.user({}, (data) => {
+    // console.log('connectToExchange', JSON.stringify(data));
     res.status(200).send({
       result: strings.success,
       message: strings.successfullyConnected,
+      data: data,
     });
   }, (error) => {
-    console.error('connectToExchange', JSON.stringify(error));
+    // console.error('connectToExchange', JSON.stringify(error));
     error = JSON.parse(error);
     res.status(200).send({
       result: strings.error,

@@ -3,6 +3,8 @@ import WebSocket from 'ws-reconnect';
 import {bitmex} from '../core/config';
 import signals from "../core/signals";
 import _ from 'lodash';
+import {BitMEXApi} from '../core/BitmexApi';
+import crypto from 'crypto';
 
 let service = {
   timeoutDelay: 30000,
@@ -20,6 +22,8 @@ let service = {
   webSocket: undefined,
   webSocketLastTimestamp: undefined,
   subscribes: [],
+
+  exchangeClients: new Map(),
 };
 
 service.renewSocket = () => {
@@ -78,10 +82,104 @@ service.renewSocket = () => {
   service.webSocket.start();
 };
 
+service.signMessage = (secret, verb, url, nonce, data) => {
+  if (!data || _.isEmpty(data)) data = '';
+  else if (_.isObject(data)) data = JSON.stringify(data);
+
+  return crypto.createHmac('sha256', secret).update(verb + url + nonce + data).digest('hex');
+};
+
 service.initSocketIOServer = (ioServer) => {
   service.ioServer = ioServer;
   ioServer.on('connection', (socket) => {
     // socket.on('user-timestamp', service.onPing);
+    socket.on(signals.connectToExchange, (data) => {
+      const params = JSON.parse(data);
+      const {testnet, apiKey, apiKeySecret} = params;
+
+      let webSocket;
+      if (service.exchangeClients.has(apiKey)) {
+        webSocket = service.exchangeClients.get(apiKey);
+        if (webSocket.connected) {
+          return;
+        }
+      } else {
+        const wsUrl = Boolean(testnet) ? bitmex.wsUrlTestnet : bitmex.wsUrlRealnet;
+        webSocket = new WebSocket(wsUrl, {
+          retryCount: 2, // default is 2
+          reconnectInterval: 1 // default is 5
+        });
+      }
+
+      webSocket.on('connect', () => {
+        const rest = new BitMEXApi(testnet, apiKey, apiKeySecret);
+        rest.getTimestamp((result) => {
+          const expires = parseInt(result / 1000 + 5);
+          const signature = service.signMessage(apiKeySecret, 'GET', '/realtime', expires);
+
+          webSocket.send(JSON.stringify({
+            op: "authKeyExpires",
+            args: [apiKey, expires, signature],
+          }));
+
+          webSocket.send(JSON.stringify({
+            op: "subscribe",
+            args: ["orderBookL2_25:XBTUSD", "wallet", "order:XBTUSD",],
+          }));
+        });
+      });
+      webSocket.on('message', (data) => {
+        // console.error('message', apiKey, data);
+        const json = JSON.parse(data);
+
+        if (!!json.request) {
+          console.log(__filename, 'message', data);
+          // if (!!data.request.op) {
+          // }
+        }
+        if (!!json.table) {
+          const table = json.table;
+          if (table === 'wallet') {
+            socket.emit(table, data);
+            // service.onWsInstrument(data.action, data.data);
+          } else if (table === 'order') {
+            socket.emit(table, data);
+            // service.onWsOrderBookL2_25(data.action, data.data);
+          }
+        }
+      });
+
+      webSocket.on('reconnect', (data) => {
+        const timestamp = new Date().toISOString();
+        console.error(__filename, 'reconnect-client', apiKey, timestamp);
+      });
+
+      webSocket.on('destroyed', (data) => {
+        console.error(__filename, 'destroyed-client', apiKey);
+        socket.emit(signals.disconnectedFromExchange);
+      });
+
+      webSocket.start();
+      service.exchangeClients.set(apiKey, webSocket);
+    });
+
+    socket.on(signals.checkIsConnected, (data) => {
+      const params = JSON.parse(data);
+      const {testnet, apiKey, apiKeySecret} = params;
+      // console.log(data, service.exchangeClients);
+      let result;
+      if (service.exchangeClients.has(apiKey)) {
+        const temp = service.exchangeClients.get(apiKey);
+        result = JSON.stringify({
+          connected: temp.isConnected,
+        });
+      } else {
+        result = JSON.stringify({
+          connected: false,
+        });
+      }
+      socket.emit(signals.answerIsConnected, result);
+    });
   })
 };
 
@@ -128,12 +226,16 @@ service.onWsOrderBookL2_25 = (action, data) => {
       } else if (index2 != -1) {
         service.orderBooksL2_25['Sell'][index2]['price'] = !!item['price'] ? item['price'] : service.orderBooksL2_25['Sell'][index2]['price'];
         service.orderBooksL2_25['Sell'][index2]['size'] = !!item['size'] ? item['size'] : service.orderBooksL2_25['Sell'][index2]['size'];
-      } else {
-        // console.error(item, index1, index2);
-        item['price'] = service.orderBooksL2_25[item['side']][0]['price'];
-        service.orderBooksL2_25[item['side']].push(item);
-        service.orderBooksL2_25[item['side']] = _.drop(service.orderBooksL2_25[item['side']], 1);
       }
+    }
+  } else if (action === 'insert') {
+    for (let item of data) {
+      service.orderBooksL2_25[item['side']].push(item);
+    }
+  } else if (action === 'delete') {
+    for (let item of data) {
+      _.remove(service.orderBooksL2_25['Buy'], {id: item.id});
+      _.remove(service.orderBooksL2_25['Sell'], {id: item.id});
     }
   }
   let temp = {

@@ -30,6 +30,7 @@ function BitMEXApi(testnet, apiKeyID, apiKeySecret) {
     const urlPositionLeverage = '/position/leverage';
     const urlTrade = '/trade';
     const urlTradeBucketed = '/trade/bucketed';
+    const urlUser = '/user';
     const urlUserWallet = '/user/wallet';
     const urlUserWalletHistory = '/user/walletHistory';
     //
@@ -194,6 +195,10 @@ function BitMEXApi(testnet, apiKeyID, apiKeySecret) {
 
     this.tradeBucketed = (data, onFulfilled, onRejected) => {
         this.request(GET, urlTradeBucketed, data, false, onFulfilled, onRejected);
+    };
+
+    this.user = (data, onFulfilled, onRejected) => {
+        this.request(GET, urlUser, data, true, onFulfilled, onRejected);
     };
 
     this.userWallet = (data, onFulfilled, onRejected) => {
