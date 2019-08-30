@@ -29,4 +29,9 @@ module.exports = {
     recalculationIsAlreadyBeingPerformed: 'Recalculation is already being performed',
     successfullyRequested: 'Successfully requested',
     successfullyConnected: 'Successfully connected',
+    noBotIsReady: 'No bot is ready',
+    successfullyStarted: 'Successfully started',
+    successfullyStopped: 'Successfully stopped',
+    generalReply: 'General reply',
+    botOrder: 'Bot Order',
 };

@@ -10,4 +10,8 @@ export default {
   disconnectedFromExchange: 'disconnectedFromExchange',
   checkIsConnected: 'checkIsConnected',
   answerIsConnected: 'answerIsConnected',
+  startBot: 'startBot',
+  stopBot: 'stopBot',
+  checkIsBotStarted: 'checkIsBotStarted',
+  answerIsBotStarted: 'answerIsBotStarted',
 }

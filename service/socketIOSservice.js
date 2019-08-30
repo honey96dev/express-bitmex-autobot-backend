@@ -1,10 +1,12 @@
 import {sprintf} from 'sprintf-js';
 import WebSocket from 'ws-reconnect';
-import {bitmex} from '../core/config';
+import {bitmex, dbTblName} from '../core/config';
 import signals from "../core/signals";
 import _ from 'lodash';
-import {BitMEXApi} from '../core/BitmexApi';
+import {BitMEXApi, POST, DELETE} from '../core/BitmexApi';
 import crypto from 'crypto';
+import dbConn from '../core/dbConn';
+import strings from '../core/strings';
 
 let service = {
   timeoutDelay: 30000,
@@ -27,6 +29,8 @@ let service = {
   apiKey2Socket: new Map(),
   wallets: new Map(),
   positions: new Map(),
+
+  bots: new Map(),
 };
 
 service.renewSocket = () => {
@@ -214,6 +218,103 @@ service.initSocketIOServer = (ioServer) => {
       if (temp) {
         socket.emit(signals.position, JSON.stringify(temp));
       }
+    });
+
+    socket.on(signals.startBot, (data) => {
+      const params = JSON.parse(data);
+      const {testnet, apiKey, apiKeySecret, userId} = params;
+      let sql = sprintf("SELECT B.* FROM `%s` B JOIN `%s` S ON S.activeBotId = B.id WHERE S.userId = '%d';", dbTblName.bots, dbTblName.settings, userId);
+      dbConn.query(sql, null, (error, rows, fields) => {
+        if (error) {
+          console.error(__filename, JSON.stringify(error));
+          socket.emit(signals.answerIsBotStarted, JSON.stringify({
+            started: false,
+            message: strings.unknownServerError,
+          }));
+          return;
+        }
+        if (rows.length === 0) {
+          socket.emit(signals.answerIsBotStarted, JSON.stringify({
+            started: false,
+            message: strings.noBotIsReady,
+          }));
+          return;
+        }
+        const rest = new BitMEXApi(testnet, apiKey, apiKeySecret);
+        // rest.
+        const config = rows[0];
+        let request;
+        request = {
+          symbol: config['symbol'],
+          leverage: config['leverageValue'],
+        };
+        rest.positionLeverage(request, result => {
+          const isBuy = config['strategy'] === 'Long';
+          const isLimit = config['orderType'] === 'Limit';
+          request = {
+            symbol: config['symbol'],
+            side: isBuy ? 'Buy' : 'Sell',
+            orderQty: config['quantity'],
+            price: isLimit ? config['price'] : undefined,
+            ordType: isLimit ? 'Limit' : 'Market',
+            text: strings.botOrder,
+          };
+          rest.order(POST, request, result => {
+
+          }, error => {
+
+          });
+          request = {
+            symbol: config['symbol'],
+            side: isBuy ? 'Buy' : 'Sell',
+            orderQty: config['quantity'],
+            price: isLimit ? config['price'] : undefined,
+            ordType: isLimit ? 'Limit' : 'Market',
+            text: strings.botOrder,
+          };
+        }, error => {
+
+        });
+        service.bots.set(userId, {
+          rest: rest,
+          config,
+        });
+        socket.emit(signals.answerIsBotStarted, JSON.stringify({
+          started: true,
+          message: strings.successfullyStarted,
+        }));
+      });
+    });
+
+    socket.on(signals.stopBot, (data) => {
+      const params = JSON.parse(data);
+      const {testnet, apiKey, apiKeySecret, userId} = params;
+
+      socket.emit(signals.answerIsBotStarted, JSON.stringify({
+        started: false,
+        message: strings.successfullyStopped,
+      }));
+
+      const bot = service.bots.get(userId);
+      // const rest = bot['rest'];
+      console.error('bot', bot);
+      let request = {
+        symbol: bot['config']['symbol'],
+      };
+      rest.orderAll(request, result => {
+        service.bots.delete(userId);
+      }, error => {
+        service.bots.delete(userId);
+      });
+    });
+
+    socket.on(signals.checkIsBotStarted, (data) => {
+      const params = JSON.parse(data);
+      const {testnet, apiKey, apiKeySecret, userId} = params;
+      socket.emit(signals.answerIsBotStarted, JSON.stringify({
+        started: service.bots.has(userId),
+        message: strings.generalReply,
+      }));
     });
   })
 };

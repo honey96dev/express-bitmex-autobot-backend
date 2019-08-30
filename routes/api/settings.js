@@ -15,7 +15,7 @@ const loadApikey = (req, res, next) => {
   let sql = sprintf("SELECT * FROM `%s` WHERE `userId` = '%d';", dbTblName.settings, userId);
   dbConn.query(sql, null, (error, rows, fields) => {
     if (error) {
-      console.error(`${__dirname}/${__filename}`, JSON.stringify(error));
+      console.error(__filename, JSON.stringify(error));
       res.status(200).send({
         result: strings.error,
         message: strings.unknownServerError,
@@ -38,7 +38,7 @@ const saveApikey = (req, res, nect) => {
   let sql = sprintf("INSERT `%s` VALUES ? ON DUPLICATE KEY UPDATE `testnet` = VALUES(`testnet`), `apiKey` = VALUES(`apiKey`), `apiKeySecret` = VALUES(`apiKeySecret`);", dbTblName.settings);
   dbConn.query(sql, [[row]], (error, rows, fields) => {
     if (error) {
-      console.error(`${__dirname}/${__filename}`, JSON.stringify(error));
+      console.error(__filename, JSON.stringify(error));
       res.status(200).send({
         result: strings.error,
         message: strings.unknownServerError,

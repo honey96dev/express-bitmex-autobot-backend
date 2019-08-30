@@ -13,7 +13,7 @@ const _loadData = (req, res, next) => {
   console.log(sql);
   dbConn.query(sql, null, (error, rows, fields) => {
     if (error) {
-      console.error(`${__dirname}/${__filename}`, JSON.stringify(error));
+      console.error(__filename, JSON.stringify(error));
       res.status(200).send({
         result: strings.error,
         message: strings.unknownServerError,
@@ -43,7 +43,7 @@ const addProc = (req, res, next) => {
   let sql = sprintf("INSERT INTO `%s` VALUES ?", dbTblName.apikeys);
   dbConn.query(sql, [[row]], (error, result, fields) => {
     if (error) {
-      console.error(`${__dirname}/${__filename}`, JSON.stringify(error));
+      console.error(__filename, JSON.stringify(error));
       res.status(200).send({
         result: strings.error,
         message: strings.unknownServerError,
@@ -67,7 +67,7 @@ const editProc = (req, res, next) => {
   let sql = sprintf("UPDATE `%s` SET `userId` = '%d', `name` = '%s', `testnet` = '%d', `apiKey` = '%s', `apiKeySecret` = '%s' WHERE `id` = '%d';", dbTblName.apikeys, userId, name, testnet, apiKey, apiKeySecret, id);
   dbConn.query(sql, null, (error, result, fields) => {
     if (error) {
-      console.error(`${__dirname}/${__filename}`, JSON.stringify(error));
+      console.error(__filename, JSON.stringify(error));
       res.status(200).send({
         result: strings.error,
         message: strings.unknownServerError,
@@ -91,7 +91,7 @@ const deleteProc = (req, res, next) => {
   let sql = sprintf("DELETE FROM `%s` WHERE `id` = '%d';", dbTblName.apikeys, id);
   dbConn.query(sql, null, (error, result, fields) => {
     if (error) {
-      console.error(`${__dirname}/${__filename}`, JSON.stringify(error));
+      console.error(__filename, JSON.stringify(error));
       res.status(200).send({
         result: strings.error,
         message: strings.unknownServerError,
