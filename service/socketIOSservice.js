@@ -260,20 +260,44 @@ service.initSocketIOServer = (ioServer) => {
             text: strings.botOrder,
           };
           rest.order(POST, request, result => {
-
+            console.log('Bot-order', JSON.stringify(request));
           }, error => {
-
+            console.error('Bot-order', JSON.stringify(error), JSON.stringify(request));
           });
+
+          let stopPx = Math.round(config['price'] * (1 + (isBuy ? 1 : -1) * config['tpPercent'] / 100));
           request = {
             symbol: config['symbol'],
-            side: isBuy ? 'Buy' : 'Sell',
-            orderQty: config['quantity'],
-            price: isLimit ? config['price'] : undefined,
-            ordType: isLimit ? 'Limit' : 'Market',
+            side: !isBuy ? 'Buy' : 'Sell',
+            orderQty: Math.floor(config['quantity'] * config['tpPercent'] / 100),
+            ordType: "MarketIfTouched",
+            execInst: "Close,LastPrice",
+            stopPx: stopPx,
             text: strings.botOrder,
           };
-        }, error => {
+          rest.order(POST, request, result => {
+            console.log('take-profit', JSON.stringify(request));
+          }, error => {
+            console.error('take-profit', JSON.stringify(error), JSON.stringify(request));
+          });
 
+          stopPx = Math.round(config['price'] * (1 - (isBuy ? 1 : -1) * config['slPercent'] / 100));
+          request = {
+            symbol: config['symbol'],
+            side: !isBuy ? 'Buy' : 'Sell',
+            orderQty: Math.floor(config['quantity'] * config['tpPercent'] / 100),
+            ordType: "Stop",
+            execInst: "Close,LastPrice",
+            stopPx: stopPx,
+            text: strings.botOrder,
+          };
+          rest.order(POST, request, result => {
+            console.log('stop-profit', JSON.stringify(request));
+          }, error => {
+            console.error('stop-profit', JSON.stringify(error), JSON.stringify(request));
+          });
+        }, error => {
+          console.error('Bot-order-leverage', JSON.stringify(error), JSON.stringify(request));
         });
         service.bots.set(userId, {
           rest: rest,
@@ -301,7 +325,7 @@ service.initSocketIOServer = (ioServer) => {
       let request = {
         symbol: bot['config']['symbol'],
       };
-      rest.orderAll(request, result => {
+      bot.rest.orderAll(request, result => {
         service.bots.delete(userId);
       }, error => {
         service.bots.delete(userId);

@@ -105,11 +105,11 @@ const connectToExchange = (req, res, next) => {
       data: data,
     });
   }, (error) => {
-    // console.error('connectToExchange', JSON.stringify(error));
+    console.error('connectToExchange', JSON.stringify(error));
     error = JSON.parse(error);
     res.status(200).send({
       result: strings.error,
-      message: error.error.message,
+      message: (!!error && !!error.error) ? error.error.message : strings.unknownServerError,
     });
   });
 };
