@@ -152,4 +152,4 @@ router.post('/edit', editProc);
 router.post('/delete', deleteProc);
 router.post('/activate', activateProc);
 
-module.exports = router;
+export default router;

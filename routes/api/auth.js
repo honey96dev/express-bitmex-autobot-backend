@@ -121,4 +121,4 @@ const signUpProc = (req, res, next) => {
 router.post('/sign-in', signInProc);
 router.post('/sign-up', signUpProc);
 
-module.exports = router;
+export default router;

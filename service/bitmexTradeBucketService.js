@@ -94,4 +94,4 @@ service.getLastTimestamp = (symbol, binSize, cb) => {
     });
 };
 
-module.exports = service;
+export default service;

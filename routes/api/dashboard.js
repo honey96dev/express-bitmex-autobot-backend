@@ -88,4 +88,4 @@ const priceChartProc = (req, res, next) => {
 
 router.get('/price-chart', priceChartProc);
 
-module.exports = router;
+export default router;

@@ -119,4 +119,4 @@ const connectToExchange = (req, res, next) => {
 router.post('/password', passwordProc);
 router.post('/connect-to-exchange', connectToExchange);
 
-module.exports = router;
+export default router;

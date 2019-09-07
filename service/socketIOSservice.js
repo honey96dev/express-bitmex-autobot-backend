@@ -412,7 +412,7 @@ service.onWsOrderBookL2_25 = (action, data) => {
 };
 
 service.onWsOrder = (apiKey, action, data) => {
-
+  console.error(action, JSON.stringify(data));
 };
 
 service.onWsWallet = (apiKey, action, data) => {
@@ -498,4 +498,4 @@ service.start = (subscribes) => {
   service.renewSocket();
 };
 
-module.exports = service;
+export default service;

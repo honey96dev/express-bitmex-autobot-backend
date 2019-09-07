@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   server: {
     isDev: false,
     port: 80,

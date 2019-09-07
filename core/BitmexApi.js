@@ -7,12 +7,12 @@ import dbConn from "./dbConn";
 
 const debug = new debugLib('bitmex:rest');
 
-const GET = 'GET';
-const POST = 'POST';
-const PUT = 'PUT';
-const DELETE = 'DELETE';
+export const GET = 'GET';
+export const POST = 'POST';
+export const PUT = 'PUT';
+export const DELETE = 'DELETE';
 
-function BitMEXApi(testnet, apiKeyID, apiKeySecret) {
+export function BitMEXApi(testnet, apiKeyID, apiKeySecret) {
     this.testnet = testnet;
     this.apiKeyID = apiKeyID;
     this.apiKeySecret = apiKeySecret;
@@ -210,4 +210,3 @@ function BitMEXApi(testnet, apiKeyID, apiKeySecret) {
     };
 }
 
-module.exports = {BitMEXApi: BitMEXApi, GET, POST, PUT, DELETE};

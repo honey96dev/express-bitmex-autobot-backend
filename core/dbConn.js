@@ -1,7 +1,7 @@
 import mysql from 'mysql2';
 import config from './config';
 
-module.exports = mysql.createPool(config.mysql);
+export default mysql.createPool(config.mysql);
 
 // const dbConn = {
 //     mysql: mysql.createPool(config.mysql),
