@@ -12,7 +12,7 @@ const router = express.Router();
 const loadApikey = (req, res, next) => {
   const params = req.body;
   const {userId} = params;
-  let sql = sprintf("SELECT * FROM `%s` WHERE `userId` = '%d';", dbTblName.settings, userId);
+  let sql = sprintf("SELECT * FROM `%s` WHERE `userId` = '%d';", dbTblName.apikeys, userId);
   dbConn.query(sql, null, (error, rows, fields) => {
     if (error) {
       console.error(__filename, JSON.stringify(error));
@@ -26,7 +26,7 @@ const loadApikey = (req, res, next) => {
     res.send({
       result: strings.success,
       message: strings.successfullySaved,
-      data: rows,
+      data: rows.length > 0 ? rows[0] : {},
     });
   });
 };
@@ -35,7 +35,7 @@ const saveApikey = (req, res, nect) => {
   const params = req.body;
   const {userId, testnet, apiKey, apiKeySecret} = params;
   const row = [userId, testnet, apiKey, apiKeySecret];
-  let sql = sprintf("INSERT `%s` VALUES ? ON DUPLICATE KEY UPDATE `testnet` = VALUES(`testnet`), `apiKey` = VALUES(`apiKey`), `apiKeySecret` = VALUES(`apiKeySecret`);", dbTblName.settings);
+  let sql = sprintf("INSERT `%s` VALUES ? ON DUPLICATE KEY UPDATE `testnet` = VALUES(`testnet`), `apiKey` = VALUES(`apiKey`), `apiKeySecret` = VALUES(`apiKeySecret`);", dbTblName.apikeys);
   dbConn.query(sql, [[row]], (error, rows, fields) => {
     if (error) {
       console.error(__filename, JSON.stringify(error));
@@ -114,8 +114,8 @@ const connectToExchange = (req, res, next) => {
   });
 };
 
-// router.post('/load-apikey', loadApikey);
-// router.post('/save-apikey', saveApikey);
+router.post('/load-apikey', loadApikey);
+router.post('/save-apikey', saveApikey);
 router.post('/password', passwordProc);
 router.post('/connect-to-exchange', connectToExchange);
 

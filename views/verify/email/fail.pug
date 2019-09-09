@@ -1,0 +1,47 @@
+doctype html
+html
+    head
+        // begin::Base Path (base relative path for assets of this page)
+        base(href!=baseUrl)
+        // end::Base Path
+        meta(charset='utf-8')
+        title Verifica tu email
+        link(rel='shortcut icon', href='images/favicon.ico')
+    body.align-self-center
+        table.container(cellpadding='0', cellspacing='0', border='0', bgcolor='#ffffff', style='margin: 50px auto; border-bottom: 1px solid #e0e0e0; border-spacing: 0; box-shadow: 0 0 3px #ddd; color: #434343; font-family: Helvetica, Verdana, sans-serif; max-width: 600px; overflow: hidden')
+            tbody
+                tr
+                    td.header(style='border-collapse: collapse; border-left: 1px solid #e0e0e0')
+                        div(style='-moz-border-radius: 2px; -webkit-border-radius: 2px; background-color: #FF5722; border: 1px solid #FF5722; border-radius: 2px; box-shadow: inset 0 1px 0 #3e6aaa; height: 5px')
+                tr
+                    td.logo(align='center', style='border-bottom: 1px solid #efefef; border-collapse: collapse; border-left: 1px solid #e0e0e0; max-width: 600px; padding: 20px 0; position: relative; text-align: center')
+                        a(style='color: #0e4595; overflow-wrap: break-word; text-decoration: underline; word-break: break-word; word-wrap: break-word', target='_blank', rel='noreferrer')
+                tr
+                    td.container-padding(bgcolor='#ffffff', style='background: #ffffff; border-collapse: collapse; border-left: 1px solid #e0e0e0; padding-left: 30px; padding-right: 30px')
+                        br
+                        h3(style='color: #0e4595; font-size: 16px; line-height: 1.5; margin: 0 0 25px 0')
+                            | Activation failed!
+                        p(style='color: #434343; font-size: 14px; line-height: 1.5; margin: 0 0 25px 0')
+                            | #{message}
+                        p(style='color: #434343; font-size: 14px; line-height: 1.5; margin: 0 0 25px 0')
+                            button.btn.btn-primary(style='background-color: #FF5722; background-image: none; border: 1px solid transparent; border-color: #FF5722; border-radius: 4px; color: #ffffff; cursor: pointer; display: inline-block; font-size: 14px; font-weight: normal; line-height: 1.42857143; margin-bottom: 0; overflow-wrap: break-word; padding: 6px 12px; text-align: center; text-decoration: none; vertical-align: middle; white-space: nowrap; word-break: break-word; word-wrap: break-word', target='_blank', rel='noreferrer', onclick="sendEmail('" + email + "')") Resend verify email
+        script(type='text/javascript').
+            function postAjax(url, data, success) {
+                var params = typeof data == 'string' ? data : Object.keys(data).map(
+                    function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) }
+                ).join('&');
+                var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+                xhr.open('POST', url);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState>3 && xhr.status==200) {
+                        if (typeof success === 'function') success(xhr.responseText);
+                    }
+                };
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(params);
+                return xhr;
+            }
+            function sendEmail(email) {
+                postAjax(#{message} + '/api/verify/sendVerificationEmail', {email: email})
+            }

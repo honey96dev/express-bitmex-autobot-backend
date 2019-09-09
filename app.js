@@ -40,6 +40,7 @@ app.use('/api', expressJwt({secret: session.secret})
             /\/api\/market-sentiment\/one\/*/,
             /\/api\/market-sentiment\/collection\/*/,
             /\/api\/deribit\/data\/*/,
+            /\/api\/verify\/*/,
         ]
     }));
 

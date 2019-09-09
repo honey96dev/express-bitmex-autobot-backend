@@ -5,8 +5,22 @@ import {server, session, dbTblName} from '../../core/config';
 import dbConn from '../../core/dbConn';
 import myCrypto from '../../core/myCrypto';
 import strings from '../../core/strings';
+import mailer from '../../core/mailer';
 
 const router = express.Router();
+
+const sendVerificationEmail = (email, name) => {
+    const token = myCrypto.hmacHex(new Date().toISOString());
+    let expire = new Date().getTime() + 300000;
+    const sql = sprintf("INSERT INTO `tokens`(`token`, `expire`, `email`) VALUES('%s', '%d', '%s');", token, expire, email);
+    dbConn.query(sql, null, (error, results, fields) => {
+        if (!error) {
+            const tokenUrl = sprintf('%sapi/verify/email?token=%s&email=%s', server.baseUrl, token, email);
+            // const tokenUrl = sprintfJs.sprintf('%sregistro/verifyEmail?token=%s&email=%s&name=%s', config.server.propietariosBaseUrl, token, email, name);
+            mailer.sendVerificationMail(email, name, tokenUrl);
+        }
+    });
+};
 
 const signInProc = (req, res, next) => {
     const params = req.body;
@@ -53,6 +67,13 @@ const signInProc = (req, res, next) => {
             }
 
             let data = rows[0];
+            if (data['allow'] == 0) {
+                res.status(200).send({
+                    result: strings.error,
+                    message: strings.yourAccountIsNotAllowed,
+                });
+                return;
+            }
             data['token'] = jwt.sign({ sub: data['id'], }, session.secret);
             res.status(200).send({
                 result: strings.success,
@@ -65,20 +86,7 @@ const signInProc = (req, res, next) => {
 
 const signUpProc = (req, res, next) => {
     const params = req.body;
-    const firstName = params.firstName;
-    const lastName = params.lastName;
-    const email = params.email;
-    const username = params.username;
-    const password = params.password;
-    const invitationCode = params.invitationCode;
-
-    if (invitationCode != server.invitationCode) {
-        res.status(200).send({
-            result: strings.error,
-            message: strings.invitationCodeIsInvalid,
-        });
-        return;
-    }
+    const {firstName, lastName, email, username, password, invitationCode} = params;
 
     let sql = sprintf("SELECT `email` FROM `%s` WHERE BINARY `email` = '%s';", dbTblName.users, email);
     dbConn.query(sql, null, (error, rows, fields) => {
@@ -99,7 +107,7 @@ const signUpProc = (req, res, next) => {
         }
 
         const hash = myCrypto.hmacHex(password);
-        sql = sprintf("INSERT INTO `%s`(`username`, `email`, `firstName`, `lastName`, `hash`, `invitationCode`) VALUES('%s', '%s', '%s', '%s', '%s', '');", dbTblName.users, username, email, firstName, lastName, hash, invitationCode);
+        sql = sprintf("INSERT INTO `%s` VALUES(NULL, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');", dbTblName.users, 'user', username, email, firstName, lastName, hash, invitationCode, 0);
         dbConn.query(sql, null, (error, rows, fields) => {
             if (error) {
                 console.error('auth/sign-in', JSON.stringify(error));
@@ -109,6 +117,8 @@ const signUpProc = (req, res, next) => {
                 });
                 return;
             }
+
+            sendVerificationEmail(email);
 
             res.status(200).send({
                 result: strings.success,

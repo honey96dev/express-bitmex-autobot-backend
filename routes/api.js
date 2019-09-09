@@ -5,7 +5,7 @@ import authRouter from './api/auth';
 import registerApikeysRouter from './api/registerApikeys';
 import registerBotsRouter from './api/registerBots';
 import settingsRouter from './api/settings';
-import service from "../service/socketIOSservice";
+import verifyRouter from './api/verify';
 
 const router = express.Router();
 
@@ -15,5 +15,6 @@ router.use('/dashboard', dashboardRouter);
 router.use('/register-bots', registerBotsRouter);
 router.use('/register-apikeys', registerApikeysRouter);
 router.use('/settings', settingsRouter);
+router.use('/verify', verifyRouter);
 
 export default router;
