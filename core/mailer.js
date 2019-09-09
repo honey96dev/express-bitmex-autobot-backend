@@ -54,11 +54,11 @@ const sendVerificationMail = (to, name, tokenUrl) => {
             });
 
             const mailOptions = {
-                from: 'Mariona de Alquilerista',
+                from: 'BitMEX AutoBOT',
                 // from: sprintfJs.sprintf('%s<%s>', server.name, smtp.user),
                 // to: 'honey96dev@gmail.com',
                 to: to,
-                subject: '¡Bienvenido a Alquilerista!',
+                subject: 'Welcome to BitMEX AutoBOT',
                 html: html,
                 // text: 'Verify your account',
             };
