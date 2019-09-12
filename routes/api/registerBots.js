@@ -35,10 +35,13 @@ const _loadData = (req, res, next) => {
         activeBotId = rows1[0]['activeBotId'];
       }
 
+      const botLogics = {
+        signal: 'Signal',
+        custom: 'Custom',
+      };
+
       for (let row of rows) {
-        if (row.exchange === 'bitmex') {
-          row.exchange1 = 'BitMEX';
-        }
+        row.botLogic1 = botLogics[row.botLogic];
         if (row.id == activeBotId) {
           row.active = 1;
         } else {
@@ -57,13 +60,65 @@ const _loadData = (req, res, next) => {
 const listProc = (req, res, next) => {
   _loadData(req, res, next);
 };
+//
+// const addProc = (req, res, next) => {
+//   const params = req.body;
+//   const {userId, name, exchange, symbol, /*apiKey, apiKeySecret,*/ orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2} = params;
+//
+//   const row = [null, userId, name, exchange, symbol, /*apiKey, apiKeySecret,*/ orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2];
+//   let sql = sprintf("INSERT INTO `%s` VALUES ?", dbTblName.bots);
+//   dbConn.query(sql, [[row]], (error, result, fields) => {
+//     if (error) {
+//       console.error(__filename, JSON.stringify(error));
+//       res.status(200).send({
+//         result: strings.error,
+//         message: strings.unknownServerError,
+//       });
+//       return;
+//     }
+//
+//     res.status(200).send({
+//       result: strings.success,
+//       message: strings.successfullyAdded,
+//       data: {
+//         insertId: result['insertId'],
+//       }
+//     });
+//   });
+// };
+//
+// const editProc = (req, res, next) => {
+//   const params = req.body;
+//   const {id, name, exchange, symbol, /*apiKey, apiKeySecret,*/ orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2} = params;
+//
+//   // let sql = sprintf("UPDATE `%s` SET `name` = '%s', `exchange` = '%s', `symbol` = '%s', `apiKey` = '%s', `apiKeySecret` = '%s', `orderType` = '%s', `postOnly` = '%d', `strategy` = '%s', `leverage` = '%s', `leverageValue` = '%f', `quantity` = '%f', `price` = '%f', `tpPercent` = '%f', `slPercent` = '%f', `trailingStop` = '%f', `numberOfSafeOrder` = '%f', `closeOrder1` = '%d', `newOrderOnSLPrice` = '%d', `valueOfLastCloseOrder` = '%f', `timesRepeatSameLogic1` = '%d', `closeOrder2` = '%d', `breakdownPriceForNewOrder` = '%f', `timeIntervalAfterClose` = '%f', `timesRepeatSameLogic2` = '%d' WHERE `id` = '%d';", dbTblName.bots, name, exchange, symbol, apiKey, apiKeySecret, orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2, id);
+//   let sql = sprintf("UPDATE `%s` SET `name` = '%s', `exchange` = '%s', `symbol` = '%s', `orderType` = '%s', `postOnly` = '%d', `strategy` = '%s', `leverage` = '%s', `leverageValue` = '%f', `quantity` = '%f', `price` = '%f', `tpPercent` = '%f', `slPercent` = '%f', `trailingStop` = '%f', `numberOfSafeOrder` = '%f', `closeOrder1` = '%d', `newOrderOnSLPrice` = '%d', `valueOfLastCloseOrder` = '%f', `timesRepeatSameLogic1` = '%d', `closeOrder2` = '%d', `breakdownPriceForNewOrder` = '%f', `timeIntervalAfterClose` = '%f', `timesRepeatSameLogic2` = '%d' WHERE `id` = '%d';", dbTblName.bots, name, exchange, symbol, orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2, id);
+//   dbConn.query(sql, null, (error, result, fields) => {
+//     if (error) {
+//       console.error(__filename, JSON.stringify(error));
+//       res.status(200).send({
+//         result: strings.error,
+//         message: strings.unknownServerError,
+//       });
+//       return;
+//     }
+//
+//     res.status(200).send({
+//       result: strings.success,
+//       message: strings.successfullyEdited,
+//       data: {
+//         insertId: id,
+//       }
+//     });
+//   });
+// };
 
-const addProc = (req, res, next) => {
+const editProc = (req, res, next) => {
   const params = req.body;
-  const {userId, name, exchange, symbol, /*apiKey, apiKeySecret,*/ orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2} = params;
+  const {id, userId, name, botLogic, leverage, closeOnTrigger, orderType, side, quantity, limitPrice} = params;
 
-  const row = [null, userId, name, exchange, symbol, /*apiKey, apiKeySecret,*/ orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2];
-  let sql = sprintf("INSERT INTO `%s` VALUES ?", dbTblName.bots);
+  const row = [id, userId, name, botLogic, leverage, closeOnTrigger, orderType, side, quantity, limitPrice];
+  let sql = sprintf("INSERT INTO `%s` VALUES ? ON DUPLICATE KEY UPDATE `userId` = VALUES(`userId`), `name` = VALUES(`name`), `botLogic` = VALUES(`botLogic`), `leverage` = VALUES(`leverage`), `closeOnTrigger` = VALUES(`closeOnTrigger`), `orderType` = VALUES(`orderType`), `side` = VALUES(`side`), `quantity` = VALUES(`quantity`), `limitPrice` = VALUES(`limitPrice`);", dbTblName.bots);
   dbConn.query(sql, [[row]], (error, result, fields) => {
     if (error) {
       console.error(__filename, JSON.stringify(error));
@@ -76,35 +131,9 @@ const addProc = (req, res, next) => {
 
     res.status(200).send({
       result: strings.success,
-      message: strings.successfullyAdded,
+      message: !!id? strings.successfullyEdited : strings.successfullyAdded,
       data: {
-        insertId: result['insertId'],
-      }
-    });
-  });
-};
-
-const editProc = (req, res, next) => {
-  const params = req.body;
-  const {id, name, exchange, symbol, /*apiKey, apiKeySecret,*/ orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2} = params;
-
-  // let sql = sprintf("UPDATE `%s` SET `name` = '%s', `exchange` = '%s', `symbol` = '%s', `apiKey` = '%s', `apiKeySecret` = '%s', `orderType` = '%s', `postOnly` = '%d', `strategy` = '%s', `leverage` = '%s', `leverageValue` = '%f', `quantity` = '%f', `price` = '%f', `tpPercent` = '%f', `slPercent` = '%f', `trailingStop` = '%f', `numberOfSafeOrder` = '%f', `closeOrder1` = '%d', `newOrderOnSLPrice` = '%d', `valueOfLastCloseOrder` = '%f', `timesRepeatSameLogic1` = '%d', `closeOrder2` = '%d', `breakdownPriceForNewOrder` = '%f', `timeIntervalAfterClose` = '%f', `timesRepeatSameLogic2` = '%d' WHERE `id` = '%d';", dbTblName.bots, name, exchange, symbol, apiKey, apiKeySecret, orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2, id);
-  let sql = sprintf("UPDATE `%s` SET `name` = '%s', `exchange` = '%s', `symbol` = '%s', `orderType` = '%s', `postOnly` = '%d', `strategy` = '%s', `leverage` = '%s', `leverageValue` = '%f', `quantity` = '%f', `price` = '%f', `tpPercent` = '%f', `slPercent` = '%f', `trailingStop` = '%f', `numberOfSafeOrder` = '%f', `closeOrder1` = '%d', `newOrderOnSLPrice` = '%d', `valueOfLastCloseOrder` = '%f', `timesRepeatSameLogic1` = '%d', `closeOrder2` = '%d', `breakdownPriceForNewOrder` = '%f', `timeIntervalAfterClose` = '%f', `timesRepeatSameLogic2` = '%d' WHERE `id` = '%d';", dbTblName.bots, name, exchange, symbol, orderType, postOnly, strategy, leverage, leverageValue, quantity, price, tpPercent, slPercent, trailingStop, numberOfSafeOrder, closeOrder1, newOrderOnSLPrice, valueOfLastCloseOrder, timesRepeatSameLogic1, closeOrder2, breakdownPriceForNewOrder, timeIntervalAfterClose, timesRepeatSameLogic2, id);
-  dbConn.query(sql, null, (error, result, fields) => {
-    if (error) {
-      console.error(__filename, JSON.stringify(error));
-      res.status(200).send({
-        result: strings.error,
-        message: strings.unknownServerError,
-      });
-      return;
-    }
-
-    res.status(200).send({
-      result: strings.success,
-      message: strings.successfullyEdited,
-      data: {
-        insertId: id,
+        insertId: !!id ? id : result['insertId'],
       }
     });
   });
@@ -147,7 +176,7 @@ const activateProc = (req, res, next) => {
 };
 
 router.post('/', listProc);
-router.post('/add', addProc);
+// router.post('/add', addProc);
 router.post('/edit', editProc);
 router.post('/delete', deleteProc);
 router.post('/activate', activateProc);

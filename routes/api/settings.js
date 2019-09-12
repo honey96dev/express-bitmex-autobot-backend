@@ -114,9 +114,61 @@ const connectToExchange = (req, res, next) => {
   });
 };
 
+const loadPersonalChart = (req, res, next) => {
+  const params = req.body;
+  const {userId} = params;
+  let sql = sprintf("SELECT * FROM `%s` WHERE `userId` = '%d';", dbTblName.settings, userId);
+  dbConn.query(sql, null, (error, rows, fields) => {
+    if (error) {
+      console.error(__filename, JSON.stringify(error));
+      res.status(200).send({
+        result: strings.error,
+        message: strings.unknownServerError,
+      });
+      return;
+    }
+    if (rows.length === 0) {
+      res.status(200).send({
+        result: strings.success,
+        data: '',
+      });
+    } else {
+      res.status(200).send({
+        result: strings.success,
+        data: rows[0]['tradingviewChartId'],
+      });
+    }
+  });
+};
+
+const savePersonalChart = (req, res, next) => {
+  const params = req.body;
+  const {userId, chartId} = params;
+  const rows = [
+    [userId, chartId],
+  ];
+  let sql = sprintf("INSERT INTO `%s`(`userId`, `tradingviewChartId`) VALUES ? ON DUPLICATE KEY UPDATE `userId` = VALUES(`userId`), `tradingviewChartId` = VALUES(`tradingviewChartId`);", dbTblName.settings);
+  dbConn.query(sql, [rows], (error, result, fileds) => {
+    if (error) {
+      console.error(__filename, JSON.stringify(error));
+      res.status(200).send({
+        result: strings.error,
+        message: strings.unknownServerError,
+      });
+      return;
+    }
+    res.status(200).send({
+      result: strings.success,
+      message: strings.successfullySaved,
+    });
+  });
+};
+
 router.post('/load-apikey', loadApikey);
 router.post('/save-apikey', saveApikey);
 router.post('/password', passwordProc);
 router.post('/connect-to-exchange', connectToExchange);
+router.post('/load-personal-chart', loadPersonalChart);
+router.post('/save-personal-chart', savePersonalChart);
 
 export default router;

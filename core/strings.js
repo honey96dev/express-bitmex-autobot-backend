@@ -38,4 +38,8 @@ export default {
     successfullyStopped: 'Successfully stopped',
     generalReply: 'General reply',
     botOrder: 'Bot Order',
+    apiKeyIsInvalid: 'ApiKey is invalid',
+    botIsInvalid: 'Bot is invalid',
+    alreadyLongPosition: 'Already Long position',
+    alreadyShortPosition: 'Already Short position',
 };
