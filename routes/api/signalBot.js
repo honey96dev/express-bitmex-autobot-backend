@@ -10,7 +10,7 @@ import jwt from "jsonwebtoken";
 const router = express.Router();
 
 const orderProc = (req, res, next) => {
-  console.log('signal-bot', req.body);
+  console.log('signal-bot', req.body, req.headers);
   const params = req.params;
   let {email, password, direction} = params;
   direction = direction.toLowerCase();
