@@ -1,31 +1,37 @@
 import express from 'express';
 import {sprintf} from 'sprintf-js';
-import {dbTblName, session} from '../../core/config';
+import {dbTblName} from '../../core/config';
 import dbConn from '../../core/dbConn';
 import myCrypto from '../../core/myCrypto';
 import strings from '../../core/strings';
 import {BitMEXApi, POST} from '../../core/BitmexApi';
-import jwt from "jsonwebtoken";
+import * as CryptoJS from 'crypto-js';
 
 const router = express.Router();
 
 const orderProc = (req, res, next) => {
-  console.log('signal-bot', req.body, req.headers);
+  // console.log('signal-bot', req.body, req.headers);
   const params = req.params;
-  let {email, password, direction} = params;
+  let {cipher} = params;
+  cipher = cipher.replace(/@/, '/');
+  let plain = CryptoJS.AES.decrypt(cipher, strings.cryptKey).toString(CryptoJS.enc.Utf8);
+  let [id, hash, direction] = plain.split('/');
+  // let {email, password, direction} = params;
   direction = direction.toLowerCase();
   // console.log('params', params);
-  if (password == null) {
-    res.status(200).send({
-      result: strings.error,
-      message: strings.invalidParameters,
-    });
-    return;
-  }
-  const hash = myCrypto.hmacHex(password);
+  // if (password == null) {
+  //   res.status(200).send({
+  //     result: strings.error,
+  //     message: strings.invalidParameters,
+  //   });
+  //   return;
+  // }
+  // const hash = myCrypto.hmacHex(password);
+
+  console.log('signal-bot', id, hash, direction);
   const symbol = 'XBTUSD';
 
-  let sql = sprintf("SELECT U.* FROM `%s` U WHERE BINARY U.email = '%s' AND BINARY U.hash = '%s';", dbTblName.users, email, hash);
+  let sql = sprintf("SELECT U.* FROM `%s` U WHERE BINARY U.id = '%s' AND BINARY U.hash = '%s';", dbTblName.users, id, hash);
   dbConn.query(sql, null, (error, rows, fields) => {
     if (error) {
       console.error('signalBot', JSON.stringify(error));
@@ -65,7 +71,7 @@ const orderProc = (req, res, next) => {
 
       const {testnet, apiKey, apiKeySecret} = rows[0];
       const rest = new BitMEXApi(testnet, apiKey, apiKeySecret);
-      sql = sprintf("SELECT B.* FROM `%s` S JOIN `%s` B WHERE S.userId = '%s';", dbTblName.settings, dbTblName.bots, data['id']);
+      sql = sprintf("SELECT B.* FROM `%s` S JOIN `%s` B WHERE S.userId = '%s' AND B.botLogic = 'signal';", dbTblName.settings, dbTblName.bots, data['id']);
       dbConn.query(sql, null, (error, rows, fields) => {
         if (error) {
           console.error('signalBot', JSON.stringify(error));
@@ -118,7 +124,7 @@ const orderProc = (req, res, next) => {
                 console.error('error', reject);
                 res.send({
                   result: strings.error,
-                  message: reject,
+                  message: JSON.parse(reject),
                 });
               });
             } else {
@@ -128,14 +134,14 @@ const orderProc = (req, res, next) => {
             console.error('error', err);
             res.send({
               result: strings.error,
-              message: err,
+              message: JSON.parse(err),
             });
           });
         }, reject => {
           console.error('error', reject);
           res.send({
             result: strings.error,
-            message: reject,
+            message: JSON.parse(reject),
           });
         });
       });
@@ -170,12 +176,12 @@ const _newPosition = (rest, symbol, side, quantity, onFilled, onReject) => {
     if (typeof onFilled === 'function') {
       onFilled({
         result: strings.error,
-        message: reject,
+        message: JSON.parse(reject),
       });
     }
   });
 };
 
-router.post('/order/:email/:password/:direction', orderProc);
+router.post('/order/:cipher', orderProc);
 
 export default router;

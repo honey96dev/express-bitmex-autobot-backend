@@ -1,4 +1,5 @@
 export default {
+    cryptKey: 'Profit_Bot',
     success: 'success',
     error: 'error',
     unknownServerError: 'Unknown server error.',
