@@ -27,6 +27,7 @@ let service = {
 
   exchangeClients: new Map(),
   apiKey2Socket: new Map(),
+  apiKey2User: new Map(),
   wallets: new Map(),
   positions: new Map(),
 
@@ -102,7 +103,7 @@ service.initSocketIOServer = (ioServer) => {
     // socket.on('user-timestamp', service.onPing);
     socket.on(signals.connectToExchange, (data) => {
       const params = JSON.parse(data);
-      const {testnet, apiKey, apiKeySecret} = params;
+      const {testnet, apiKey, apiKeySecret, username, firstName, lastName} = params;
 
       let webSocket;
       if (service.exchangeClients.has(apiKey)) {
@@ -174,6 +175,7 @@ service.initSocketIOServer = (ioServer) => {
       webSocket.start();
       service.exchangeClients.set(apiKey, webSocket);
       service.apiKey2Socket.set(apiKey, socket);
+      service.apiKey2User.set(apiKey, {username, firstName, lastName});
     });
 
     socket.on(signals.disconnectFromExchange, (data) => {
@@ -185,6 +187,7 @@ service.initSocketIOServer = (ioServer) => {
       }));
       service.exchangeClients.get(apiKey).destroy();
       service.exchangeClients.delete(apiKey);
+      service.apiKey2User.delete(apiKey);
     });
 
     socket.on(signals.checkIsConnected, (data) => {
@@ -194,9 +197,11 @@ service.initSocketIOServer = (ioServer) => {
       let result;
       if (service.exchangeClients.has(apiKey)) {
         const temp = service.exchangeClients.get(apiKey);
+        const user = service.apiKey2User.get(apiKey);
         result = JSON.stringify({
           connected: temp.isConnected,
           apiKey: params,
+          user: user,
         });
         if (temp.isConnected) {
           service.apiKey2Socket.set(apiKey, socket);
@@ -206,6 +211,7 @@ service.initSocketIOServer = (ioServer) => {
         result = JSON.stringify({
           connected: false,
           apiKey: params,
+          user: {},
         });
       }
       socket.emit(signals.answerIsConnected, result);

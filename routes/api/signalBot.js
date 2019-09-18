@@ -13,7 +13,7 @@ const orderProc = (req, res, next) => {
   // console.log('signal-bot', req.body, req.headers);
   const params = req.params;
   let {cipher} = params;
-  cipher = cipher.replace(/@/, '/');
+  cipher = cipher.replace(/@/g, '/');
   let plain = CryptoJS.AES.decrypt(cipher, strings.cryptKey).toString(CryptoJS.enc.Utf8);
   let [id, hash, direction] = plain.split('/');
   // let {email, password, direction} = params;
@@ -138,7 +138,7 @@ const orderProc = (req, res, next) => {
             });
           });
         }, reject => {
-          console.error('error', reject);
+          console.error('error', reject, payload);
           res.send({
             result: strings.error,
             message: JSON.parse(reject),
