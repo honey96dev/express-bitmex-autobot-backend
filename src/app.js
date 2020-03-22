@@ -13,7 +13,8 @@ import apiRouter from './routes/api';
 const app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+const cwd = process.cwd();
+app.set('views', path.join(cwd, 'views'));
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
@@ -29,8 +30,8 @@ app.use(compression());
 //     next();
 // });
 
-// app.use(express.static(path.join(__dirname, 'public')));
-// app.use('/assets', express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(cwd, 'public')));
+// app.use('/assets', express.static(path.join(cwd, 'public')));
 
 app.use('/api', expressJwt({secret: session.secret})
   .unless({
@@ -46,9 +47,9 @@ app.use('/api', expressJwt({secret: session.secret})
   }));
 
 app.use('/api', apiRouter);
-app.use(express.static(path.join(__dirname, 'frontend')));
+app.use(express.static(path.join(cwd, 'frontend')));
 app.get('*', function (req, res) {
-  res.sendFile(path.join(__dirname, 'frontend/index.html'));
+  res.sendFile(path.join(cwd, 'frontend/index.html'));
 });
 
 // catch 404 and forward to error handler
