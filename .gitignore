@@ -88,3 +88,5 @@ typings/
 .dynamodb/
 package-lock.json
 core/config.js
+.idea/
+backend/server.development.js
