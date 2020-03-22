@@ -4,10 +4,15 @@
   "private": true,
   "scripts": {
     "start": "node ./src/bin/start-webpp",
-    "build-dev": "rimraf backend && webpack --mode development --config webpack.config.js --watch",
+    "build-dev": "rimraf backend/server.development.js && webpack --mode development --config webpack.config.js --watch",
     "start-mon": "nodemon ./backend/server.development.js",
-    "build-prod": "rimraf backend && webpack --mode production --config webpack.config.js",
-    "start-prod": "node ./backend/server.production.js"
+    "build-prod": "rimraf backend/server.production.js && webpack --mode production --config webpack.config.js",
+    "start-prod": "node ./backend/server.production.js",
+    "socket-start": "node ./src/bin/start-socketapp",
+    "socket-build-dev": "rimraf backend/socket.development.js && webpack --mode development --config webpack.socket.config.js --watch",
+    "socket-start-mon": "nodemon ./backend/socket.development.js",
+    "socket-build-prod": "rimraf backend/socket.production.js && webpack --mode production --config webpack.socket.config.js",
+    "socket-start-prod": "node ./backend/socket.production.js"
   },
   "dependencies": {
     "axios": "^0.19.2",

@@ -1,7 +1,7 @@
 import debugLib from 'debug';
 import cluster from 'cluster';
 import config from '../core/config';
-import socketIOService from '../service/socket.io-service';
+import socketIOService from 'service/socketIOSservice';
 
 if (cluster.isMaster) {
     cluster.fork();

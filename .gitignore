@@ -89,4 +89,4 @@ typings/
 package-lock.json
 core/config.js
 .idea/
-backend/server.development.js
+backend/*.development.js
